@@ -112,16 +112,19 @@ export class ServerRunner {
   private async startHTTP() {
     const { createServer } = await import('http');
     const port = this.config.transport?.port || this.config.dev?.port || 3100;
+    // 기본은 루프백만 (MCP 스펙: 로컬 서버는 localhost에만 바인딩 권장)
+    const host = this.config.transport?.host ?? '127.0.0.1';
     const httpTransport = new AirHttpTransport(this.engine, {
       endpoint: '/mcp',
+      allowedOrigins: this.config.transport?.allowedOrigins,
     });
 
     const server = createServer(async (req, res) => {
       await httpTransport.handleRequest(req, res);
     });
 
-    server.listen(port, () => {
-      console.log(`[air] HTTP server listening on port ${port}`);
+    server.listen(port, host, () => {
+      console.log(`[air] HTTP server listening on port ${port} (${host})`);
     });
 
     onShutdown(async () => {
@@ -237,8 +240,9 @@ export class ServerRunner {
       res.writeHead(404).end();
     });
 
-    httpServer.listen(port, () => {
-      console.log(`[air] SSE server listening on port ${port}`);
+    const host = this.config.transport?.host ?? '127.0.0.1';
+    httpServer.listen(port, host, () => {
+      console.log(`[air] SSE server listening on port ${port} (${host})`);
     });
 
     onShutdown(async () => {
