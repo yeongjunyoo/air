@@ -82,6 +82,10 @@ defineServer({
 [air] SSE client disconnected (session: a1b2c3d4-...)
 ```
 
+### Origin 검사
+
+Streamable HTTP와 같이 기본으로 `127.0.0.1`에만 바인딩하고, `Origin` 헤더가 localhost 출처도 아니고 `transport.allowedOrigins`에도 없는 요청에는 모든 경로에서 `403`을 돌려줍니다 (MCP 스펙의 DNS rebinding 방지). `Origin` 헤더가 없는 요청(브라우저가 아닌 클라이언트)은 받습니다.
+
 ### CORS
 
 SSE 트랜스포트는 CORS 헤더를 자동으로 설정합니다:
@@ -212,7 +216,7 @@ interface TransportConfig {
   type?: 'stdio' | 'sse' | 'http' | 'workers' | 'auto';  // 기본: 'auto'
   port?: number;                               // HTTP/SSE 포트
   host?: string;                               // 기본: '127.0.0.1' (외부 접속을 받으려면 '0.0.0.0')
-  allowedOrigins?: string[];                   // localhost 외에 허용할 브라우저 Origin (http)
+  allowedOrigins?: string[];                   // localhost 외에 허용할 브라우저 Origin (http, sse)
   basePath?: string;                           // 기본: '/'
 }
 ```

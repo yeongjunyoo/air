@@ -79,7 +79,7 @@ interface TransportConfig {
   type?: 'stdio' | 'sse' | 'http' | 'auto';  // 기본: 'auto'
   port?: number;
   host?: string;                               // 기본: '127.0.0.1' (외부 접속을 받으려면 '0.0.0.0')
-  allowedOrigins?: string[];                   // localhost 외에 허용할 브라우저 Origin (http)
+  allowedOrigins?: string[];                   // localhost 외에 허용할 브라우저 Origin (http, sse)
   basePath?: string;                           // 기본: '/'
 }
 ```

@@ -14,6 +14,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { McpProtocolEngine, JsonRpcRequest } from './mcp-protocol.js';
 import { PROTOCOL_VERSIONS, SUPPORTED_VERSIONS, ErrorCodes } from './mcp-protocol.js';
+import { checkOrigin } from './origin.js';
 
 export interface AirHttpTransportOptions {
   /** MCP 엔드포인트 경로 (기본: '/mcp') */
@@ -26,9 +27,6 @@ export interface AirHttpTransportOptions {
    */
   allowedOrigins?: string[];
 }
-
-/** 항상 허용하는 Origin 호스트 (루프백) */
-const LOOPBACK_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]'];
 
 export class AirHttpTransport {
   private engine: McpProtocolEngine;
@@ -44,20 +42,6 @@ export class AirHttpTransport {
   }
 
   /**
-   * Origin 헤더 검증 (DNS rebinding 방지).
-   * Origin이 없으면(브라우저가 아닌 클라이언트) 통과, 있으면 루프백 출처나 allowedOrigins만 통과.
-   */
-  private isAllowedOrigin(origin: string | undefined): boolean {
-    if (origin === undefined) return true;
-    if (this.allowedOrigins?.includes('*') || this.allowedOrigins?.includes(origin)) return true;
-    try {
-      return LOOPBACK_HOSTNAMES.includes(new URL(origin).hostname);
-    } catch {
-      return false; // 'null' 같은 불투명 Origin
-    }
-  }
-
-  /**
    * HTTP 요청을 처리한다.
    * server-runner의 HTTP 서버에서 호출됨.
    */
@@ -65,14 +49,7 @@ export class AirHttpTransport {
     const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
 
     // Origin이 허용되지 않으면 403 (MCP 스펙 Streamable HTTP, Security Warning)
-    if (!this.isAllowedOrigin(req.headers.origin)) {
-      res.writeHead(403, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        jsonrpc: '2.0',
-        error: { code: -32000, message: `Forbidden: Origin ${req.headers.origin} is not allowed` },
-      }));
-      return;
-    }
+    if (!checkOrigin(req, res, this.allowedOrigins)) return;
 
     // CORS
     res.setHeader('Access-Control-Allow-Origin', this.corsOrigin);

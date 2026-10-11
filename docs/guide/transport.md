@@ -82,6 +82,10 @@ Terminal output:
 [air] SSE client disconnected (session: a1b2c3d4-...)
 ```
 
+### Origin check
+
+Like Streamable HTTP, the SSE server listens on `127.0.0.1` by default and answers `403` on every path to a request whose `Origin` header is neither a localhost origin nor listed in `transport.allowedOrigins` (MCP spec, DNS rebinding protection). Requests without an `Origin` header (non-browser clients) are accepted.
+
 ### CORS
 
 SSE transport sets CORS headers automatically:
@@ -212,7 +216,7 @@ interface TransportConfig {
   type?: 'stdio' | 'sse' | 'http' | 'workers' | 'auto';  // Default: 'auto'
   port?: number;                               // HTTP/SSE port
   host?: string;                               // Default: '127.0.0.1' ('0.0.0.0' to accept remote clients)
-  allowedOrigins?: string[];                   // Browser Origins allowed besides localhost (http)
+  allowedOrigins?: string[];                   // Browser Origins allowed besides localhost (http, sse)
   basePath?: string;                           // Default: '/'
 }
 ```

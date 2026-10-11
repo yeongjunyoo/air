@@ -127,7 +127,7 @@ interface AirConfig {
     type?: 'stdio' | 'sse' | 'http' | 'auto';  // Default: 'auto'
     port?: number;                // HTTP/SSE port
     host?: string;                // Default: '127.0.0.1' ('0.0.0.0' to accept remote clients)
-    allowedOrigins?: string[];    // Browser Origins allowed besides localhost (http)
+    allowedOrigins?: string[];    // Browser Origins allowed besides localhost (http, sse)
     basePath?: string;            // Default: '/'
   };
 
