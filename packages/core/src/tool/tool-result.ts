@@ -14,6 +14,23 @@ export interface McpContent {
   description?: string;
 }
 
+/** tools/call 결과 (MCP CallToolResult의 content + isError) */
+export interface McpToolResult {
+  content: McpContent[];
+  isError?: boolean;
+}
+
+/**
+ * AirToolResponse를 tools/call 결과로 변환한다.
+ * 핸들러나 미들웨어가 { content, isError: true }를 돌려주면 isError를 보존한다.
+ */
+export function normalizeToolResult(result: AirToolResponse): McpToolResult {
+  const content = normalizeResult(result);
+  const isError =
+    typeof result === 'object' && result !== null && !Array.isArray(result) && (result as any).isError === true;
+  return isError ? { content, isError: true } : { content };
+}
+
 /** AirToolResponse를 MCP content 배열로 변환 */
 export function normalizeResult(result: AirToolResponse): McpContent[] {
   if (result === null || result === undefined) {

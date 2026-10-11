@@ -85,7 +85,7 @@ export interface ProtocolEngineConfig {
   tools: AirToolDef[];
   resources: AirResourceDef[];
   prompts: AirPromptDef[];
-  /** 도구 실행 함수 — 미들웨어 체인을 거쳐 실행 */
+  /** 도구 실행 함수 — 미들웨어 체인을 거쳐 실행 (content 배열 또는 { content, isError } 반환) */
   callTool: (toolName: string, params: Record<string, any>, meta?: ClientMeta, inputResponses?: any[]) => Promise<any>;
   /** 캐시 힌트 (기본: 300000ms) */
   defaultTtlMs?: number;
@@ -339,11 +339,14 @@ export class McpProtocolEngine {
       };
     }
 
-    const result: any = { content };
+    // callTool은 content 배열이나 { content, isError }를 돌려준다 — isError는 그대로 전달
+    const isError = !Array.isArray(content) && content?.isError === true;
+    const result: any = { content: Array.isArray(content?.content) ? content.content : content };
+    if (isError) result.isError = true;
 
-    // outputSchema가 있으면 structuredContent 추가
-    if (tool.outputSchema && Array.isArray(content) && content.length > 0) {
-      const firstText = content[0];
+    // outputSchema가 있으면 structuredContent 추가 (에러 결과에는 붙이지 않는다)
+    if (tool.outputSchema && !isError && Array.isArray(result.content) && result.content.length > 0) {
+      const firstText = result.content[0];
       if (firstText?.type === 'text' && typeof firstText.text === 'string') {
         try {
           result.structuredContent = JSON.parse(firstText.text);

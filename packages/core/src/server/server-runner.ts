@@ -46,7 +46,7 @@ export class ServerRunner {
         const reqCtx = createRequestContext(this.config.name, this.serverCtx.state, {
           inputResponses,
         });
-        return this.middlewareChain.execute(tool, params, reqCtx);
+        return this.middlewareChain.executeTool(tool, params, reqCtx);
       },
     });
   }
